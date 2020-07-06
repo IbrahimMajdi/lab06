@@ -1,12 +1,3 @@
-// 'use strict'
-
-// const express = require('express');
-
-// const cors = require('cors');
-
-// require('devenv').config();
-
-// const PORT = process.env.PORT || 4000;
 'use strict';
 
 const express = require('express');
@@ -27,47 +18,44 @@ app.get('/', (request, response) => {
     response.status(200).send('you did a great job');
 });
 
-//http://localhost:3000/location?data=Lynnwood
-// app.get('/location', (req, res) => {
-//     const city = req.query.data;
-//     console.log(city);
-//     // res.send('you are in thr location route');
-//     const geoData = require('./data/geo.json');
-//     console.log(geoData);
-//     const locationData = new Location(city, geoData);
-//     res.send(locationData);
-// });
-
-// function Location(city, geoData) {
-//     // {
-//     //     "search_query": "seattle",
-//     //         "formatted_query": "Seattle, WA, USA",
-//     //             "latitude": "47.606210",
-//     //                 "longitude": "-122.332071"
-//     // }
-
-//     this.search_query = city;
-//     this.formatted_query = geoData[0].display_name;
-//     this.latitude = geoData[0].lat;
-//     this.longitude = geoData[0].lon;
-// }
 app.get('/location', (req, res) => {
-    // response.status(200).send('location');
     const city = req.query.city;
     const locationsData = require('./data/location.json');
     const cityRequest = new City(city, locationsData);
     res.send(cityRequest);
 });
 
+app.get('/weather', (req, res) => {
+    const weatherData = require('./data/weather.json');
+    const weatherRequest = new Weather(weatherData.data);
+    res.send(weatherRequest);
+});
 
 
 function City(name, location) {
     this.search_query = name;
-    this.formatted_query=location[0].display_name;
-    this.latitude =location[0].lat;
-    this.longitude=location[0].lon;
+    this.formatted_query = location[0].display_name;
+    this.latitude = location[0].lat;
+    this.longitude = location[0].lon;
 
 }
+
+
+function Weather(data) {
+
+    console.log(data.length);
+    
+    //    datas.forEach(function (element) {
+    for (let i = 0; i < data.length; i++) {
+
+        this.forecast = data[i].weather.description;
+        this.date = data[i].valid_date;
+    }
+
+    // });
+
+}
+
 
 app.get('*', (req, res) => {
     res.status(404).send('Not Found');
