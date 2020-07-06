@@ -27,7 +27,12 @@ app.get('/location', (req, res) => {
 
 app.get('/weather', (req, res) => {
     const weatherData = require('./data/weather.json');
-    const weatherRequest = new Weather(weatherData.data);
+    const weatherRequest = []
+    weatherData.data.forEach(item => {
+        let inst = new Weather(item)
+        weatherRequest.push(inst);
+    });
+
     res.send(weatherRequest);
 });
 
@@ -42,18 +47,8 @@ function City(name, location) {
 
 
 function Weather(data) {
-
-    console.log(data.length);
-    
-    //    datas.forEach(function (element) {
-    for (let i = 0; i < data.length; i++) {
-
-        this.forecast = data[i].weather.description;
-        this.date = data[i].valid_date;
-    }
-
-    // });
-
+    this.forecast = data.weather.description;
+    this.date = data.valid_date;
 }
 
 
