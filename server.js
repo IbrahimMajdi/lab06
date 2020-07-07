@@ -14,27 +14,57 @@ const app = express();
 
 app.use(cors());
 
+const superagent = require('superagent');
+
 app.get('/', (request, response) => {
     response.status(200).send('you did a great job');
 });
 
-app.get('/location', (req, res) => {
+
+app.get('/location', locationHandler);
+app.get('/weather', weatherHandler);
+
+
+
+function weatherHandler(req, res) {
+
     const city = req.query.city;
-    const locationsData = require('./data/location.json');
-    const cityRequest = new City(city, locationsData);
-    res.send(cityRequest);
-});
 
-app.get('/weather', (req, res) => {
-    const weatherData = require('./data/weather.json');
-    const weatherRequest = []
-    weatherData.data.forEach(item => {
-        let inst = new Weather(item)
-        weatherRequest.push(inst);
-    });
+    let key = process.env.WEATHER_API_KEY;
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
 
-    res.send(weatherRequest);
-});
+    console.log(url);
+
+    superagent.get(url)
+        .then(wdata => {
+            let w = wdata.body.data;
+            console.log(w);
+
+            w.map(day => {
+                let dayWeather = new Weather(day);
+                console.log(dayWeather);
+
+                res.status(200).json(dayWeather);
+            })
+        })
+}
+
+function locationHandler(req, res) {
+
+    const city = req.query.city;
+
+    let key = process.env.GEOCODE_API_KEY;
+    let url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+    console.log(url);
+
+
+    superagent.get(url)
+        .then(gdata => {
+            const locationData = new City(city, gdata.body);
+            res.status(200).json(locationData);
+        })
+}
+
 
 
 function City(name, location) {
@@ -46,9 +76,12 @@ function City(name, location) {
 }
 
 
-function Weather(data) {
-    this.forecast = data.weather.description;
-    this.date = data.valid_date;
+function Weather(day) {
+
+    console.log(day.weather.description);
+
+    this.forecast = day.weather.description;
+    this.date = day.datetime;
 }
 
 
