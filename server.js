@@ -33,19 +33,17 @@ function weatherHandler(req, res) {
     let key = process.env.WEATHER_API_KEY;
     let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
 
-    console.log(url);
+    // console.log(url);
 
     superagent.get(url)
         .then(wdata => {
-            let w = wdata.body.data;
-            console.log(w);
 
-            w.map(day => {
-                let dayWeather = new Weather(day);
-                console.log(dayWeather);
+            let days = wdata.body.data.map(day => {
+                
+                return new Weather(day);
+            });
 
-                res.status(200).json(dayWeather);
-            })
+            res.status(200).json(days);
         })
 }
 
@@ -77,8 +75,6 @@ function City(name, location) {
 
 
 function Weather(day) {
-
-    console.log(day.weather.description);
 
     this.forecast = day.weather.description;
     this.date = day.datetime;
