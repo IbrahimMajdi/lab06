@@ -23,29 +23,9 @@ app.get('/', (request, response) => {
 
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
+app.get('/trails', trailsHandler)
 
 
-
-function weatherHandler(req, res) {
-
-    const city = req.query.city;
-
-    let key = process.env.WEATHER_API_KEY;
-    let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
-
-    // console.log(url);
-
-    superagent.get(url)
-        .then(wdata => {
-
-            let days = wdata.body.data.map(day => {
-                
-                return new Weather(day);
-            });
-
-            res.status(200).json(days);
-        })
-}
 
 function locationHandler(req, res) {
 
@@ -63,6 +43,50 @@ function locationHandler(req, res) {
         })
 }
 
+function weatherHandler(req, res) {
+
+    const city = req.query.city;
+
+    let key = process.env.WEATHER_API_KEY;
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
+
+    // console.log(url);
+
+    superagent.get(url)
+        .then(wdata => {
+
+            let days = wdata.body.data.map(day => {
+
+                return new Weather(day);
+            });
+
+            res.status(200).json(days);
+        })
+}
+
+function trailsHandler(req, res) {
+
+    let lat = 0;
+    let lang = 0;
+
+    const key = process.env.TRAIL_API_KEY;
+    let url = `https://www.hikingproject.com/data/get-trails?lat=40.0274&lon=-105.2519&maxDistance=10&key=${key}`;
+
+    console.log(url);
+
+    superagent.get(url)
+        .then(tdata => {
+
+            var pos = tdata.body.trails.map(trail => {
+
+                return new Trail(trail);
+            })
+
+            res.status(200).json(pos);
+        })
+
+}
+
 
 
 function City(name, location) {
@@ -78,6 +102,20 @@ function Weather(day) {
 
     this.forecast = day.weather.description;
     this.date = day.datetime;
+}
+
+function Trail(trail) {
+
+    this.name = trail.name;
+    this.location = trail.location;
+    this.length = trail.length;
+    this.stars = trail.stars;
+    this.star_votes = trail.star_votes;
+    this.summary = trail.summary;
+    this.trail_url = trail.trail_url;
+    this.conditions = trail.conditions;
+    this.condition_date = trail.condition_date;
+    this.condition_time = trail.condition_time;
 }
 
 
