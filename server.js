@@ -44,11 +44,10 @@ function locationHandler(req, res) {
 }
 
 function weatherHandler(req, res) {
-
-    const city = req.query.city;
+    // const city = req.query.city;
 
     let key = process.env.WEATHER_API_KEY;
-    let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?&lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&key=${key}`;
 
     // console.log(url);
 
@@ -66,11 +65,9 @@ function weatherHandler(req, res) {
 
 function trailsHandler(req, res) {
 
-    let lat = 0;
-    let lang = 0;
-
+   
     const key = process.env.TRAIL_API_KEY;
-    let url = `https://www.hikingproject.com/data/get-trails?lat=40.0274&lon=-105.2519&maxDistance=10&key=${key}`;
+    let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=10&key=${key}`;
 
     console.log(url);
 
@@ -88,12 +85,14 @@ function trailsHandler(req, res) {
 }
 
 
+City.all = [];
 
 function City(name, location) {
     this.search_query = name;
     this.formatted_query = location[0].display_name;
     this.latitude = location[0].lat;
     this.longitude = location[0].lon;
+    City.all.push(this);
 
 }
 
