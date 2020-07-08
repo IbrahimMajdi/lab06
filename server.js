@@ -1,14 +1,16 @@
 'use strict';
 
 const express = require('express');
+const {response} = require('express');
 
-//CORS = Cross Origin Resource Sharing
+const {Client} = require('pg');
 const cors = require('cors');
 
 //DOTENV (read our enviroment variable)
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3030;
+const pgClient= new Client(process.env.DATABASE_URL)
 
 const app = express();
 
@@ -65,7 +67,7 @@ function weatherHandler(req, res) {
 
 function trailsHandler(req, res) {
 
-   
+
     const key = process.env.TRAIL_API_KEY;
     let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=10&key=${key}`;
 
