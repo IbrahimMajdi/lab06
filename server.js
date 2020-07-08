@@ -3,14 +3,14 @@
 const express = require('express');
 const {response} = require('express');
 
-const {Client} = require('pg');
+const pg = require('pg');
 const cors = require('cors');
 
 //DOTENV (read our enviroment variable)
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3030;
-const pgClient= new Client(process.env.DATABASE_URL)
+const client = new pg.Client(process.env.DATABASE_URL)
 
 const app = express();
 
@@ -128,6 +128,10 @@ app.use((error, req, res) => {
     res.status(500).send(error);
 });
 
-app.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`)
+
+client.connect().then(() => {
+
+    app.listen(PORT, () => {
+        console.log(`listening on port ${PORT}`)
+    })
 })
