@@ -129,9 +129,7 @@ app.use((error, req, res) => {
 });
 
 
-client.connect().then(() => {
-
-    app.listen(PORT, () => {
-        console.log(`listening on port ${PORT}`)
-    })
+app.listen(PORT, () => {
+    console.log(`listening on port ${PORT}`)
 })
+// client.connect()
