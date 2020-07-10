@@ -1,20 +1,23 @@
 'use strict';
 
-const express = require('express');
-
-//CORS = Cross Origin Resource Sharing
-const cors = require('cors');
-
-//DOTENV (read our enviroment variable)
 require('dotenv').config();
 
-const PORT = process.env.PORT || 3030;
+
+const express = require('express');
+const {
+    response
+} = require('express');
+const cors = require('cors');
+const pg = require('pg');
+const superagent = require('superagent');
+
 
 const app = express();
-
 app.use(cors());
 
-const superagent = require('superagent');
+const PORT = process.env.PORT || 3030;
+const client = new pg.Client(process.env.DATABASE_URL)
+
 
 app.get('/', (request, response) => {
     response.status(200).send('you did a great job');
@@ -31,16 +34,47 @@ function locationHandler(req, res) {
 
     const city = req.query.city;
 
-    let key = process.env.GEOCODE_API_KEY;
-    let url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
-    console.log(url);
+    getlocation(city).then(locationData => {
+        res.status(200).json(locationData);
+    })
+}
+
+function getlocation(city) {
+
+    let SQL = `SELECT * FROM locations WHERE search_query=$1;`;
+    let values = [city];
+
+    return client.query(SQL, values).then(result => {
+
+        if (result.rowCount) {
+            
+            console.log('already exists');
+            
+            return result.rows[0];
+
+        } else {
+
+            let key = process.env.GEOCODE_API_KEY;
+            let url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+
+            return superagent.get(url)
+                .then(gdata => {
+                    const locationData = new City(city, gdata.body);
+                    
+                    let SQL = `INSERT INTO locations (search_query,formatted_query,latitude,longitude) VALUES ($1,$2,$3,$4);`;
+                    let safeValues = [city, locationData.formatted_query, locationData.latitude, locationData.longitude];
+
+                    return client.query(SQL, safeValues).then(result => {
+
+                        return result.rows[0];
+                    })
+                })
 
 
-    superagent.get(url)
-        .then(gdata => {
-            const locationData = new City(city, gdata.body);
-            res.status(200).json(locationData);
-        })
+        }
+
+    })
+
 }
 
 function weatherHandler(req, res) {
@@ -65,7 +99,7 @@ function weatherHandler(req, res) {
 
 function trailsHandler(req, res) {
 
-   
+
     const key = process.env.TRAIL_API_KEY;
     let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=10&key=${key}`;
 
@@ -126,6 +160,10 @@ app.use((error, req, res) => {
     res.status(500).send(error);
 });
 
-app.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`)
-})
+client.connect()
+    .then(() => {
+
+        app.listen(PORT, () => {
+            console.log(`listening on port ${PORT}`)
+        })
+    })
