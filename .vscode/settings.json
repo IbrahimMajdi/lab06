@@ -1,32 +1,3 @@
 {
-    "sqltools.connections": [
-        {
-            "database": "mo",
-            "driver": "PostgreSQL",
-            "group": "city_explorer",
-            "name": "locations",
-            "password": "0000",
-            "pgOptions": {
-                "ssl": {}
-            },
-            "port": 5432,
-            "previewLimit": 50,
-            "server": "localhost",
-            "username": "mo"
-        },
-        {
-            "askForPassword": true,
-            "database": "locations",
-            "driver": "PostgreSQL",
-            "group": "l",
-            "name": "loc",
-            "pgOptions": {
-                "ssl": {}
-            },
-            "port": 5432,
-            "previewLimit": 50,
-            "server": "127.0.0.1",
-            "username": "mo"
-        }
-    ]
+    "sqltools.connections": []
 }
