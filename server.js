@@ -30,12 +30,13 @@ function City(name, location) {
 
 }
 
-Weather.all=[];
+Weather.all = [];
 
 function Weather(day) {
 
     this.forecast = day.weather.description;
-    this.date = day.datetime;
+    this.time = new Date(day.datetime).toDateString();
+    // this.country_code = day.country_code;
     Weather.all.push(this);
 }
 
@@ -113,7 +114,7 @@ function getlocation(city) {
 
                     return client.query(SQL, safeValues).then(result => {
 
-                        return result.rows[0];
+                        return locationData;
                     })
                 })
 
@@ -128,17 +129,23 @@ function weatherHandler(req, res) {
     // const city = req.query.city;
 
     let key = process.env.WEATHER_API_KEY;
-    let url = `https://api.weatherbit.io/v2.0/forecast/daily?&lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&key=${key}`;
+
+    let latitude = req.query.latitude;
+    let longitude = req.query.longitude;
+
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?&lat=${latitude}&lon=${longitude}&key=${key}`;
 
     // console.log(url);
 
     superagent.get(url)
         .then(wdata => {
+            // console.log(wdata.body.country_code);
 
             let days = wdata.body.data.map(day => {
 
                 return new Weather(day);
             });
+            // let days = new Weather(wdata.body)
 
             res.status(200).json(days);
         })
@@ -148,7 +155,11 @@ function trailsHandler(req, res) {
 
 
     const key = process.env.TRAIL_API_KEY;
-    let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=100&key=${key}`;
+
+    let latitude = req.query.latitude;
+    let longitude = req.query.longitude;
+
+    let url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=100&key=${key}`;
 
     superagent.get(url)
         .then(tdata => {
@@ -168,16 +179,16 @@ function trailsHandler(req, res) {
 function moviesHandler(req, res) {
 
     const key = process.env.MOVIE_API_KEY;
-    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&region=${Weather.all.country_code}&page=1`;
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&page=1`;
 
     superagent.get(url)
         .then(mdata => {
 
-            var movie = mdata.body.results.map(movie => {
+            var movies = mdata.body.results.map(movie => {
                 return new Movies(movie);
             })
 
-            res.status(200).json(movie);
+            res.status(200).json(movies);
         })
 
 
