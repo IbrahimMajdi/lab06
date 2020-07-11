@@ -19,6 +19,52 @@ const PORT = process.env.PORT || 3030;
 const client = new pg.Client(process.env.DATABASE_URL)
 
 
+City.all = [];
+
+function City(name, location) {
+    this.search_query = name;
+    this.formatted_query = location[0].display_name;
+    this.latitude = location[0].lat;
+    this.longitude = location[0].lon;
+    City.all.push(this);
+
+}
+
+Weather.all=[];
+
+function Weather(day) {
+
+    this.forecast = day.weather.description;
+    this.date = day.datetime;
+    Weather.all.push(this);
+}
+
+function Trail(trail) {
+
+    this.name = trail.name;
+    this.location = trail.location;
+    this.length = trail.length;
+    this.stars = trail.stars;
+    this.star_votes = trail.star_votes;
+    this.summary = trail.summary;
+    this.trail_url = trail.trail_url;
+    this.conditions = trail.conditions;
+    this.condition_date = trail.condition_date;
+    this.condition_time = trail.condition_time;
+}
+
+function Movies(movie) {
+
+    this.title = movie.title;
+    this.overview = movie.overview;
+    this.average_votes = movie.vote_average;
+    this.total_votes = movie.vote_count;
+    this.image_url = movie.poster_path;
+    this.popularity = movie.popularity;
+    this.released_on = movie.release_date;
+
+}
+
 app.get('/', (request, response) => {
     response.status(200).send('you did a great job');
 });
@@ -102,9 +148,7 @@ function trailsHandler(req, res) {
 
 
     const key = process.env.TRAIL_API_KEY;
-    let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=10&key=${key}`;
-
-    console.log(url);
+    let url = `https://www.hikingproject.com/data/get-trails?lat=${City.all[0].latitude}&lon=${City.all[0].longitude}&maxDistance=100&key=${key}`;
 
     superagent.get(url)
         .then(tdata => {
@@ -123,14 +167,13 @@ function trailsHandler(req, res) {
 
 function moviesHandler(req, res) {
 
-    const key = process.env.MDB_KEY;
+    const key = process.env.MOVIE_API_KEY;
     let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&region=${Weather.all.country_code}&page=1`;
 
     superagent.get(url)
         .then(mdata => {
 
             var movie = mdata.body.results.map(movie => {
-
                 return new Movies(movie);
             })
 
@@ -142,51 +185,7 @@ function moviesHandler(req, res) {
 }
 
 
-City.all = [];
 
-function City(name, location) {
-    this.search_query = name;
-    this.formatted_query = location[0].display_name;
-    this.latitude = location[0].lat;
-    this.longitude = location[0].lon;
-    City.all.push(this);
-
-}
-
-Weather.all=[];
-
-function Weather(day) {
-
-    this.forecast = day.weather.description;
-    this.date = day.datetime;
-    Weather.all.push(this);
-}
-
-function Trail(trail) {
-
-    this.name = trail.name;
-    this.location = trail.location;
-    this.length = trail.length;
-    this.stars = trail.stars;
-    this.star_votes = trail.star_votes;
-    this.summary = trail.summary;
-    this.trail_url = trail.trail_url;
-    this.conditions = trail.conditions;
-    this.condition_date = trail.condition_date;
-    this.condition_time = trail.condition_time;
-}
-
-function Movies(movie) {
-
-    this.title = movie.title;
-    this.overview = movie.overview;
-    this.average_votes = movie.vote_average;
-    this.total_votes = movie.vote_count;
-    this.image_url = movie.poster_path;
-    this.popularity = movie.popularity;
-    this.released_on = movie.release_date;
-
-}
 
 app.get('*', (req, res) => {
     res.status(404).send('Not Found');
