@@ -67,6 +67,17 @@ function Movies(movie) {
 
 }
 
+
+function Restaurants(restaurant) {
+    this.name = restaurant.name;
+    this.image_url = restaurant.image_url;
+    this.price = restaurant.price;
+    this.rating = restaurant.rating;
+    this.url = restaurant.url;
+
+
+}
+
 app.get('/', (request, response) => {
     response.status(200).send('you did a great job');
 });
@@ -76,6 +87,7 @@ app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.get('/trails', trailsHandler);
 app.get('/movies', moviesHandler);
+app.get('/yelp', yelpHandler);
 
 
 
@@ -150,7 +162,7 @@ function weatherHandler(req, res) {
             // let days = new Weather(wdata.body)
 
             res.status(200).json(days);
-            console.log("weather", Weather.all);
+            // console.log("weather", Weather.all);
             return region;
 
         })
@@ -200,7 +212,25 @@ function moviesHandler(req, res) {
 
 }
 
+function yelpHandler(req, res) {
 
+    const key = process.env.YELP_API_KEY;
+    console.log('yelp');
+    let lat = req.query.latitude;
+    let lon = req.query.longitude;
+    let url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${lat}&longitude=${lon}`;
+
+    superagent.get(url).set('Authorization', `Bearer ${key}`).then(rdata => {
+
+        var restaurants = rdata.body.businesses.map(restaurant => {
+            return new Restaurants(restaurant);
+        })
+
+        res.status(200).json(restaurants);
+    })
+
+
+}
 
 
 app.get('*', (req, res) => {
