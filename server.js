@@ -124,7 +124,7 @@ function trailsHandler(req, res) {
 function moviesHandler(req, res) {
 
     const key = process.env.MDB_KEY;
-    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&page=1`;
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&region=${Weather.all.country_code}&page=1`;
 
     superagent.get(url)
         .then(mdata => {
@@ -153,11 +153,13 @@ function City(name, location) {
 
 }
 
+Weather.all=[];
 
 function Weather(day) {
 
     this.forecast = day.weather.description;
     this.date = day.datetime;
+    Weather.all.push(this);
 }
 
 function Trail(trail) {
