@@ -32,11 +32,12 @@ function City(name, location) {
 
 Weather.all = [];
 
-function Weather(day) {
+function Weather(day, region) {
 
     this.forecast = day.weather.description;
     this.time = new Date(day.datetime).toDateString();
-    // this.country_code = day.country_code;
+    this.country_code = region;
+
     Weather.all.push(this);
 }
 
@@ -60,7 +61,7 @@ function Movies(movie) {
     this.overview = movie.overview;
     this.average_votes = movie.vote_average;
     this.total_votes = movie.vote_count;
-    this.image_url = movie.poster_path;
+    this.image_url = `${'https://image.tmdb.org/t/p/w500'+movie.poster_path}`;
     this.popularity = movie.popularity;
     this.released_on = movie.release_date;
 
@@ -125,11 +126,12 @@ function getlocation(city) {
 
 }
 
+var region;
+
 function weatherHandler(req, res) {
     // const city = req.query.city;
 
     let key = process.env.WEATHER_API_KEY;
-
     let latitude = req.query.latitude;
     let longitude = req.query.longitude;
 
@@ -137,17 +139,20 @@ function weatherHandler(req, res) {
 
     // console.log(url);
 
-    superagent.get(url)
+    return superagent.get(url)
         .then(wdata => {
             // console.log(wdata.body.country_code);
-
+            region = wdata.body.country_code;
             let days = wdata.body.data.map(day => {
 
-                return new Weather(day);
+                return new Weather(day, region);
             });
             // let days = new Weather(wdata.body)
 
             res.status(200).json(days);
+            console.log("weather", Weather.all);
+            return region;
+
         })
 }
 
