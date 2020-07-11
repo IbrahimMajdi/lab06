@@ -26,7 +26,8 @@ app.get('/', (request, response) => {
 
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
-app.get('/trails', trailsHandler)
+app.get('/trails', trailsHandler);
+app.get('/movies', moviesHandler);
 
 
 
@@ -47,9 +48,9 @@ function getlocation(city) {
     return client.query(SQL, values).then(result => {
 
         if (result.rowCount) {
-            
+
             console.log('already exists');
-            
+
             return result.rows[0];
 
         } else {
@@ -60,7 +61,7 @@ function getlocation(city) {
             return superagent.get(url)
                 .then(gdata => {
                     const locationData = new City(city, gdata.body);
-                    
+
                     let SQL = `INSERT INTO locations (search_query,formatted_query,latitude,longitude) VALUES ($1,$2,$3,$4);`;
                     let safeValues = [city, locationData.formatted_query, locationData.latitude, locationData.longitude];
 
@@ -119,6 +120,28 @@ function trailsHandler(req, res) {
 }
 
 
+
+function moviesHandler(req, res) {
+
+    const key = process.env.MDB_KEY;
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&sort_by=popularity.desc&region=${Weather.all.country_code}&page=1`;
+
+    superagent.get(url)
+        .then(mdata => {
+
+            var movie = mdata.body.results.map(movie => {
+
+                return new Movies(movie);
+            })
+
+            res.status(200).json(movie);
+        })
+
+
+
+}
+
+
 City.all = [];
 
 function City(name, location) {
@@ -130,11 +153,13 @@ function City(name, location) {
 
 }
 
+Weather.all=[];
 
 function Weather(day) {
 
     this.forecast = day.weather.description;
     this.date = day.datetime;
+    Weather.all.push(this);
 }
 
 function Trail(trail) {
@@ -151,6 +176,17 @@ function Trail(trail) {
     this.condition_time = trail.condition_time;
 }
 
+function Movies(movie) {
+
+    this.title = movie.title;
+    this.overview = movie.overview;
+    this.average_votes = movie.vote_average;
+    this.total_votes = movie.vote_count;
+    this.image_url = movie.poster_path;
+    this.popularity = movie.popularity;
+    this.released_on = movie.release_date;
+
+}
 
 app.get('*', (req, res) => {
     res.status(404).send('Not Found');
